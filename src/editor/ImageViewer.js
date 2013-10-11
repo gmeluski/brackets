@@ -30,9 +30,12 @@ define(function (require, exports, module) {
     
     var LanguageManager     = require("language/LanguageManager"),
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
+        PanelManager        = require("view/PanelManager"),
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
+    
+    var _naturalWidth = 0;
     
     /**
      * TODO: Move to FileUtils
@@ -66,6 +69,23 @@ define(function (require, exports, module) {
         } else {
             return bytes + ' B';
         }
+    }
+    
+    function _updateScale(currentWidth) {
+        if (currentWidth < _naturalWidth) {
+            var scale = Math.floor(currentWidth / _naturalWidth * 100);
+            $("#img-scale").text(scale + "%")
+                .show();
+        } else {
+            $("#img-scale").hide();
+        }
+    }
+    
+    /**
+     * Update the scale element on reisze
+     */
+    function onEditorAreaResize(event) {
+        _updateScale($("#img-preview").width());
     }
         
      /**
@@ -106,7 +126,8 @@ define(function (require, exports, module) {
             $("#img-path").text(relPath);
             $("#img-preview").on("load", function () {
                 // add dimensions and size
-                var dimensionString = this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
+                _naturalWidth = this.naturalWidth;
+                var dimensionString = _naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
                 // get image size
                 var fileEntry = new NativeFileSystem.FileEntry(fullPath);
                 fileEntry.getMetadata(
@@ -122,16 +143,13 @@ define(function (require, exports, module) {
                     }
                 );
                 $("#image-holder").show();
-                if ($(this).width() < this.naturalWidth) {
-                    scale = Math.floor($(this).width() / this.naturalWidth * 100);
-                    $("#img-scale").text(scale + "%")
-                        .show();
-                }
+                _updateScale($(this).width());
             });
         }
     }
     
-    exports.getImageHolder  = getImageHolder;
-    exports.render          = render;
+    exports.getImageHolder      = getImageHolder;
+    exports.onEditorAreaResize  = onEditorAreaResize;
+    exports.render              = render;
 });
     

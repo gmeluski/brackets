@@ -641,13 +641,16 @@ define(function (require, exports, module) {
         var mode = LanguageManager.getLanguageForPath(_currentlyViewedFile);
         if (mode.getId() === "image") {
             ImageViewer.render(_currentlyViewedFile);
+            $(PanelManager).on("editorAreaResize", ImageViewer.onEditorAreaResize);
+            // TODO where best to unsubscribe from event?
         } else {
             _showNoEditor();
         }
     }
     /** Remove existing custom view if present */
+    // TODO rename to _removeCustomViewer
     function _removeCustomView() {
-        var customViewId;
+        var customViewId;      
         if (_previousCustomView) {
             customViewId = _previousCustomView.attr("id");
             if ($("#" + customViewId).size() > 0) {
